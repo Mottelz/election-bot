@@ -1,0 +1,27 @@
+{
+  "name": "election-bot",
+  "version": "1.0.0",
+  "description": "A discord bot for managing elections and voting processes.",
+  "main": "index.js",
+  "scripts": {
+    "deploy": "node deploy-commands.js",
+    "start": "node index.js"
+  },
+  "engines": {
+    "node": "24.x",
+    "pnpm": "10.x"
+  },
+  "keywords": [
+    "discord bot",
+    "election",
+    "voting"
+  ],
+  "author": "Mottelz",
+  "license": "MIT",
+  "packageManager": "pnpm@10.24.0",
+  "dependencies": {
+    "better-sqlite3": "^12.5.0",
+    "discord.js": "^14.25.1",
+    "dotenv": "^17.2.3"
+  }
+}
