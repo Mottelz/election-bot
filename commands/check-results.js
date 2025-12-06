@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags, EmbedBuilder } = require('discord.js');
 const { getAllCountsVotesByTypeAndCandidate } = require('../models/votes');
+const { getBallotGroups, getCandidatesByBallotGroup } = require('../models/candidates');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -8,22 +9,21 @@ module.exports = {
 		.setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 	async execute(interaction) {
 		try {
-			const results = await getAllCountsVotesByTypeAndCandidate();
-			if (!results || results.length === 0) {
-				return await interaction.reply({ content: 'No votes found for the current poll.' });
+			const ballotGroups = await getBallotGroups();
+			if (!ballotGroups || ballotGroups.length === 0) {
+				return await interaction.reply({ content: 'No ballot groups found.' });
 			}
 
-			// Group results by ballot group
-			const ballotGroups = {};
-			results.forEach(result => {
-				const ballotGroup = result.ballot_group;
-				if (!ballotGroups[ballotGroup]) {
-					ballotGroups[ballotGroup] = {};
+			const voteResults = await getAllCountsVotesByTypeAndCandidate();
+
+			// Create a map of votes by candidate and type
+			const voteMap = {};
+			voteResults.forEach(result => {
+				const key = `${result.candidate}_${result.ballot_group}`;
+				if (!voteMap[key]) {
+					voteMap[key] = { candidate_name: result.candidate_name };
 				}
-				if (!ballotGroups[ballotGroup][result.candidate_name]) {
-					ballotGroups[ballotGroup][result.candidate_name] = {};
-				}
-				ballotGroups[ballotGroup][result.candidate_name][result.type] = result.count;
+				voteMap[key][result.type] = result.count;
 			});
 
 			const embed = new EmbedBuilder()
@@ -31,20 +31,26 @@ module.exports = {
 				.setColor('#e74c3c')
 				.setTimestamp();
 
-			// Format results by ballot group
-			for (const [ballotGroup, candidates] of Object.entries(ballotGroups)) {
+			// Process each ballot group
+			for (const group of ballotGroups) {
+				const candidates = await getCandidatesByBallotGroup(group.ballot_group);
 				let fieldValue = '';
-				for (const [candidateName, votes] of Object.entries(candidates)) {
+
+				for (const candidate of candidates) {
+					const key = `${candidate.discord_id}_${candidate.ballot_group}`;
+					const votes = voteMap[key] || {};
 					const yes = votes.yes || 0;
 					const no = votes.no || 0;
 					const abstain = votes.abstain || 0;
-					fieldValue += `**${candidateName}**\n`;
-					fieldValue += `✅ Yes: ${yes} | ❌ No: ${no} | ⚪ Abstain: ${abstain}\n\n`;
+					const total = yes + no + abstain;
+
+					fieldValue += `**${candidate.name}**\n`;
+					fieldValue += `✅ Yes: ${yes} | ❌ No: ${no} | ⚪ Abstain: ${abstain} | Total: ${total}\n\n`;
 				}
 
 				embed.addFields({
-					name: `🗳️ Ballot ${ballotGroup}`,
-					value: fieldValue || 'No votes recorded',
+					name: `🗳️ Ballot ${group.ballot_group}`,
+					value: fieldValue || 'No candidates in this group',
 					inline: false
 				});
 			}
