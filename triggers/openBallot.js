@@ -1,31 +1,59 @@
-const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = require('discord.js');
+const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, MessageFlags } = require('discord.js');
+const { getCandidatesByBallotGroup } = require('../models/candidates');
 
-export async function openBallotModal(interaction) {
+async function openBallotModal(interaction, ballotGroup = 1) {
+	try {
+		const modal = new ModalBuilder()
+			.setCustomId(`ballot_modal_${ballotGroup}`)
+			.setTitle(`Submit Your Vote - Ballot ${ballotGroup}`);
 
-	const modal = new ModalBuilder()
-		.setCustomId('ballot_modal')
-		.setTitle('Submit Your Vote');
+		const candidates = await getCandidatesByBallotGroup(ballotGroup);
 
-	const candidateInput = new TextInputBuilder()
-		.setCustomId('candidate_choice')
-		.setLabel('Enter your candidate choice')
-		.setStyle(TextInputStyle.Short)
-		.setPlaceholder('e.g., John Doe')
-		.setRequired(true)
-		.setMaxLength(100);
+		// Check if there are any candidates in this ballot group
+		if (!candidates || candidates.length === 0) {
+			await interaction.reply({
+				content: `❌ **No candidates found in Ballot ${ballotGroup}!**`,
+				flags: MessageFlags.Ephemeral
+			});
+			return;
+		}
 
-	const reasonInput = new TextInputBuilder()
-		.setCustomId('vote_reason')
-		.setLabel('Why are you voting for this candidate? (Optional)')
-		.setStyle(TextInputStyle.Paragraph)
-		.setPlaceholder('Enter your reasoning here...')
-		.setRequired(false)
-		.setMaxLength(1000);
+		// Create action rows with text input fields for each candidate
+		const actionRows = candidates.map(candidate => {
+			const voteInput = new TextInputBuilder()
+				.setCustomId(`vote_${candidate.discord_id}`)
+				.setLabel(`Vote for ${candidate.name}?`)
+				.setStyle(TextInputStyle.Short)
+				.setPlaceholder('Enter: yes, no, or abstain')
+				.setRequired(true)
+				.setMaxLength(7); // "abstain" is 7 characters
 
-	const firstRow = new ActionRowBuilder().addComponents(candidateInput);
-	const secondRow = new ActionRowBuilder().addComponents(reasonInput);
+			return new ActionRowBuilder().addComponents(voteInput);
+		});
 
-	modal.addComponents(firstRow, secondRow);
+		// Add some debugging
+		console.log(`Creating modal for ballot group ${ballotGroup} with ${actionRows.length} action rows for ${candidates.length} candidates`);
 
-	await interaction.showModal(modal);
+		modal.setComponents(...actionRows);
+
+		await interaction.showModal(modal);
+	} catch (error) {
+		console.error('Error in openBallotModal:', error);
+		// Only try to reply if we haven't already responded
+		if (!interaction.replied && !interaction.deferred) {
+			try {
+				await interaction.reply({
+					content: '❌ **Error opening ballot!** Please try again later.',
+					flags: MessageFlags.Ephemeral
+				});
+			} catch (replyError) {
+				console.error('Error sending error reply:', replyError);
+			}
+		}
+		throw error; // Re-throw so the main error handler knows about it
+	}
 }
+
+module.exports = {
+	openBallotModal
+};
