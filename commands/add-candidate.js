@@ -12,10 +12,11 @@ module.exports = {
 		.setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 	async execute(interaction) {
 		const candidateUser = interaction.options.getUser('candidate');
+		const candidateMember = await interaction.guild.members.fetch(candidateUser.id);
 
 		await addCandidate({
 			discord_id: candidateUser.id,
-			name: candidateUser.username,
+			name: candidateMember.displayName,
 		});
 
 		return await interaction.reply({
