@@ -53,7 +53,7 @@ module.exports = {
 
           let fieldValue = "";
           if (total > 0) {
-            const weightedYes = yes - no;
+            const weightedYes = Math.max(yes - no, 0);
             const weightedYesPercentage = (weightedYes / total) * 100;
             const noPercentage = (no / total) * 100;
             const abstainPercentage = (abstain / total) * 100;
