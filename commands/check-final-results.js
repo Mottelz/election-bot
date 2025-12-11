@@ -59,12 +59,12 @@ module.exports = {
             const abstainPercentage = (abstain / total) * 100;
             const yesPercentage = (yes / total) * 100;
 
-            fieldValue += `**${candidate.name}**\n`;
+            fieldValue += `## ${candidate.name}\n`;
             fieldValue += `Yes (weighted) is ${weightedYesPercentage.toFixed(
               2
-            )}% of the vote\n\n`;
-            fieldValue += `Yes is ${yesPercentage.toFixed(2)}% of the vote\n\n`;
-            fieldValue += `No is ${noPercentage.toFixed(2)}% of the vote\n\n`;
+            )}% of the vote\n`;
+            fieldValue += `Yes is ${yesPercentage.toFixed(2)}% of the vote\n`;
+            fieldValue += `No is ${noPercentage.toFixed(2)}% of the vote\n`;
             fieldValue += `Abstain is ${abstainPercentage.toFixed(
               2
             )}% of the vote\n\n`;
@@ -73,15 +73,9 @@ module.exports = {
             fieldValue += `No votes yet\n\n`;
           }
         }
-
-        embed.addFields({
-          name: `🗳️ Ballot ${group.ballot_group}`,
-          value: fieldValue || "No candidates in this group",
-          inline: false,
-        });
       }
 
-      return await interaction.reply({ embeds: [embed] });
+      return await interaction.reply({ content: fieldValue });
     } catch (error) {
       console.error("Error checking poll results:", error);
       return await interaction.reply({
