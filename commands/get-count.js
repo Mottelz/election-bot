@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags, EmbedBuilder } = require('discord.js');
 const { countBallotsByGroup } = require('../models/ballots');
-const { getBallotGroups, getCandidatesByBallotGroup } = require('../models/candidates');
+const { getBallotGroups } = require('../models/candidates');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -19,19 +19,17 @@ module.exports = {
 				.setColor('#a524bf')
 				.setTimestamp();
 
-			// Process each ballot group
-			for (const group of ballotGroups) {
-				const ballotCounts = await countBallotsByGroup(group.ballot_group);
-				let fieldValue = '';
-				fieldValue += `**${group.ballot_group}**\n`;
-				fieldValue += `Total: ${ballotCounts.find(count => count.ballot_group === group.ballot_group).count}\n\n`;
+		// Process each ballot group
+		for (const group of ballotGroups) {
+			const ballotCount = await countBallotsByGroup(group.ballot_group);
+			let fieldValue = `Total: ${ballotCount}`;
 
-				embed.addFields({
-					name: `🗳️ Ballot ${group.ballot_group}`,
-                    value: fieldValue || 'No ballots in this group',
-					inline: false
-				});
-			}
+			embed.addFields({
+				name: `🗳️ Ballot ${group.ballot_group}`,
+				value: fieldValue,
+				inline: false
+			});
+		}
 
 			return await interaction.reply({ embeds: [embed] });
 		} catch (error) {

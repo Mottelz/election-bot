@@ -1,6 +1,5 @@
-const { SlashCommandBuilder, PermissionFlagsBits, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, MessageFlags } = require('discord.js');
 const { assignCandidatesToBallotGroups, getBallotGroups, getCandidatesByBallotGroup } = require('../models/candidates');
-const { getUserSubmittedBallots } = require('../models/ballots');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -71,7 +70,7 @@ module.exports = {
 			console.error('Error opening voting:', error);
 			await interaction.reply({
 				content: '❌ **Error opening voting!** Please try again later.',
-				ephemeral: true
+				flags: MessageFlags.Ephemeral
 			});
 		}
 	}

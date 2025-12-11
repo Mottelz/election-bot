@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require('discord.js');
 const { getBallotGroups, getCandidatesByBallotGroup } = require('../models/candidates');
 const { getUserSubmittedBallots } = require('../models/ballots');
 
@@ -48,7 +48,7 @@ module.exports = {
 			console.error('Error checking vote status:', error);
 			await interaction.reply({
 				content: '❌ **Error checking your voting status!** Please try again later.',
-				ephemeral: true
+				flags: MessageFlags.Ephemeral
 			});
 		}
 	}
