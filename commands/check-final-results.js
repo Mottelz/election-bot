@@ -60,14 +60,14 @@ module.exports = {
             const yesPercentage = (yes / total) * 100;
 
             fieldValue += `## ${candidate.name}\n`;
-            fieldValue += `Yes (weighted) is ${weightedYesPercentage.toFixed(
+            fieldValue += `**Yes (weighted)**: ${weightedYesPercentage.toFixed(
               2
-            )}% of the vote\n`;
-            fieldValue += `Yes is ${yesPercentage.toFixed(2)}% of the vote\n`;
-            fieldValue += `No is ${noPercentage.toFixed(2)}% of the vote\n`;
-            fieldValue += `Abstain is ${abstainPercentage.toFixed(
+            )}%\n`;
+            fieldValue += `**Yes**: ${yesPercentage.toFixed(2)}%\n`;
+            fieldValue += `**No**: ${noPercentage.toFixed(2)}%\n`;
+            fieldValue += `**Abstain**: ${abstainPercentage.toFixed(
               2
-            )}% of the vote\n\n`;
+            )}%\n\n`;
           } else {
             fieldValue += `**${candidate.name}**\n`;
             fieldValue += `No votes yet\n\n`;
