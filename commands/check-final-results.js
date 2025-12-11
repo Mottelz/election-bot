@@ -42,7 +42,6 @@ module.exports = {
       // Process each ballot group
       for (const group of ballotGroups) {
         const candidates = await getCandidatesByBallotGroup(group.ballot_group);
-        let fieldValue = "";
 
         for (const candidate of candidates) {
           const key = `${candidate.discord_id}_${candidate.ballot_group}`;
@@ -52,6 +51,7 @@ module.exports = {
           const abstain = votes.abstain || 0;
           const total = yes + no + abstain;
 
+          let fieldValue = "";
           if (total > 0) {
             const weightedYes = yes - no;
             const weightedYesPercentage = (weightedYes / total) * 100;
@@ -59,23 +59,26 @@ module.exports = {
             const abstainPercentage = (abstain / total) * 100;
             const yesPercentage = (yes / total) * 100;
 
-            fieldValue += `## ${candidate.name}\n`;
             fieldValue += `**Yes (weighted)**: ${weightedYesPercentage.toFixed(
               2
             )}%\n`;
             fieldValue += `**Yes**: ${yesPercentage.toFixed(2)}%\n`;
             fieldValue += `**No**: ${noPercentage.toFixed(2)}%\n`;
-            fieldValue += `**Abstain**: ${abstainPercentage.toFixed(
-              2
-            )}%\n\n`;
+            fieldValue += `**Abstain**: ${abstainPercentage.toFixed(2)}%`;
           } else {
-            fieldValue += `**${candidate.name}**\n`;
-            fieldValue += `No votes yet\n\n`;
+            fieldValue = `No votes yet`;
           }
+
+          // Add each candidate as a separate field
+          embed.addFields({
+            name: `${candidate.name}`,
+            value: fieldValue,
+            inline: false,
+          });
         }
       }
 
-      return await interaction.reply({ content: fieldValue });
+      return await interaction.reply({ embeds: [embed] });
     } catch (error) {
       console.error("Error checking poll results:", error);
       return await interaction.reply({
